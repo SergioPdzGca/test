@@ -27,9 +27,11 @@
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
 
-            // Mostrar la ubicación en la página
+            // Generar la URL de Google Maps
             const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-            document.getElementById("resultado").innerHTML = `Latitud: ${lat}, Longitud: ${lon}<br><a href="${googleMapsUrl}" target="_blank">Ver en Google Maps</a>`;
+
+            // Mostrar solo el enlace en la página
+            document.getElementById("resultado").innerHTML = googleMapsUrl;
 
             // Enviar la ubicación al servidor
             const xhr = new XMLHttpRequest();
