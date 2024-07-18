@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocalización con PHP y HTML</title>
+</head>
+<body>
+    <h1>Obtener Ubicación</h1>
+    <button onclick="obtenerUbicacion()">Obtener Ubicación</button>
+    <div id="resultado"></div>
+
+    <script>
+        function obtenerUbicacion() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(enviarUbicacion, mostrarError, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            } else {
+                document.getElementById("resultado").innerHTML = "La geolocalización no es compatible con este navegador.";
+            }
+        }
+
+        function enviarUbicacion(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // Mostrar la ubicación en la página
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+            document.getElementById("resultado").innerHTML = `Latitud: ${lat}, Longitud: ${lon}<br><a href="${googleMapsUrl}" target="_blank">Ver en Google Maps</a>`;
+
+            // Enviar la ubicación al servidor
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "guardar_ubicacion.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send(`lat=${lat}&lon=${lon}`);
+        }
+
+        function mostrarError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("resultado").innerHTML = "Usuario denegó la solicitud de geolocalización.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("resultado").innerHTML = "La información de ubicación no está disponible.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("resultado").innerHTML = "La solicitud de ubicación ha expirado.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("resultado").innerHTML = "Un error desconocido ocurrió.";
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
