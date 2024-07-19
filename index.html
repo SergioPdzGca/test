@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geolocalización con PHP y HTML</title>
+    <title>Geolocalización con Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
     <h1>Obtener Ubicación</h1>
     <button onclick="obtenerUbicacion()">Obtener Ubicación</button>
     <div id="resultado"></div>
-
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         function obtenerUbicacion() {
             if (navigator.geolocation) {
@@ -22,24 +31,25 @@
                 document.getElementById("resultado").innerHTML = "La geolocalización no es compatible con este navegador.";
             }
         }
-
+    
         function enviarUbicacion(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-
-            // Generar la URL de Google Maps
-            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-
-            // Mostrar solo el enlace en la página
-            document.getElementById("resultado").innerHTML = googleMapsUrl;
-
+    
+            // Mostrar la ubicación en un mapa de Leaflet
+            const map = L.map('map').setView([lat, lon], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            L.marker([lat, lon]).addTo(map);
+    
             // Enviar la ubicación al servidor
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "guardar_ubicacion.php", true);
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
             xhr.send(`lat=${lat}&lon=${lon}`);
         }
-
+    
         function mostrarError(error) {
             switch(error.code) {
                 case error.PERMISSION_DENIED:
