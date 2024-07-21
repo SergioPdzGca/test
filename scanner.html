@@ -52,22 +52,40 @@
             width: 80%;
             max-width: 400px;
             word-wrap: break-word;
+            margin-bottom: 20px;
+        }
+        #flash-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #flash-button:active {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+    <button id="flash-button">Activar Linterna</button>
+
     <div id="result">Resultado: <span id="code"></span></div>
     <h1>Escáner de Códigos de Barra</h1>
     <div id="scanner-container">
         <div id="canvas-container"></div>
     </div>
-    <br><br><br><br>
+   
 
     <!-- Incluir la librería QuaggaJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script >
         document.addEventListener('DOMContentLoaded', function() {
     const resultSpan = document.getElementById('code');
+    const flashButton = document.getElementById('flash-button');
+    let torchEnabled = false;
+    let track;
 
     if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
         // Configuración de QuaggaJS
@@ -90,6 +108,15 @@
             }
             console.log("Iniciando Quagga...");
             Quagga.start();
+
+            // Obtener el stream de video y el track para controlar la linterna
+            Quagga.CameraAccess.request({
+                facingMode: "environment"
+            }).then(function(stream) {
+                track = stream.getVideoTracks()[0];
+            }).catch(function(error) {
+                console.log('Error al acceder a la cámara:', error);
+            });
         });
 
         // Detectar cuando se encuentra un código de barras
@@ -98,17 +125,21 @@
             resultSpan.innerText = data.codeResult.code;
         });
 
-        // Activar la linterna
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-            .then(function(stream) {
-                const track = stream.getVideoTracks()[0];
-                track.applyConstraints({ advanced: [{ torch: true }] })
-                    .catch(function(error) {
-                        console.log('Error al activar la linterna:', error);
-                    });
-            }).catch(function(error) {
-                console.log('Error al acceder a la cámara:', error);
-            });
+        // Manejar el botón de la linterna
+        flashButton.addEventListener('click', function() {
+            if (track) {
+                torchEnabled = !torchEnabled;
+                track.applyConstraints({
+                    advanced: [{ torch: torchEnabled }]
+                }).then(() => {
+                    flashButton.innerText = torchEnabled ? 'Desactivar Linterna' : 'Activar Linterna';
+                }).catch(function(error) {
+                    console.log('Error al cambiar el estado de la linterna:', error);
+                });
+            } else {
+                alert('La linterna no está disponible.');
+            }
+        });
     } else {
         alert('La API getUserMedia no es compatible con este navegador.');
     }
