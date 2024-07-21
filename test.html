@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Rostros con la Cámara</title>
+    <style>
+        #video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid black;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            border: 2px solid red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detección de Rostros con la Cámara</h1>
+    <video id="video" autoplay></video>
+    <canvas id="overlay"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('overlay');
+        const ctx = canvas.getContext('2d');
+
+        // Función para cargar la cámara y detectar rostros
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        resolve(video);
+                    };
+                });
+                video.play();
+                detectFaces();
+            } catch (error) {
+                console.error('Error al acceder a la cámara:', error);
+            }
+        }
+
+        // Función para detectar rostros en cada frame del video
+        function detectFaces() {
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+
+            // Dibujar el video en el canvas
+            ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+            // Detección de rostros simple (solo dibuja un rectángulo)
+            ctx.beginPath();
+            ctx.lineWidth = '2';
+            ctx.strokeStyle = 'red';
+            ctx.rect(50, 50, 100, 100); // Ejemplo de detección de rostro ficticio
+            ctx.stroke();
+
+            // Llamar a la función recursivamente para procesar el siguiente frame
+            requestAnimationFrame(detectFaces);
+        }
+
+        // Iniciar la cámara y la detección de rostros cuando la página se carga
+        document.addEventListener('DOMContentLoaded', () => {
+            startCamera().catch(console.error);
+        });
+    </script>
+</body>
+</html>

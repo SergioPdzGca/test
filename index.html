@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geolocalización con Leaflet</title>
+    <title>Geolocalización y Dirección con Leaflet</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
         #map {
             height: 400px;
@@ -13,58 +14,70 @@
     </style>
 </head>
 <body>
-    <h1>Obtener Ubicación</h1>
-    <button onclick="obtenerUbicacion()">Obtener Ubicación</button>
-    <div id="resultado"></div>
+    <h1>Obtener Ubicación y Dirección</h1>
+    <div>
+        <label for="currentLat">Latitud Actual:</label>
+        <input type="text" id="currentLat" placeholder="Ej. 40.712776">
+        <label for="currentLon">Longitud Actual:</label>
+        <input type="text" id="currentLon" placeholder="Ej. -74.005974">
+    </div>
+    <div>
+        <label for="destLat">Latitud Destino:</label>
+        <input type="text" id="destLat" placeholder="Ej. 40.730610">
+        <label for="destLon">Longitud Destino:</label>
+        <input type="text" id="destLon" placeholder="Ej. -73.935242">
+    </div>
+    <button onclick="calcularRuta()">Calcular Ruta</button>
     <div id="map"></div>
     
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <script>
-        function obtenerUbicacion() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(enviarUbicacion, mostrarError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+        let map, routingControl;
+
+        function calcularRuta() {
+            const currentLat = parseFloat(document.getElementById("currentLat").value);
+            const currentLon = parseFloat(document.getElementById("currentLon").value);
+            const destLat = parseFloat(document.getElementById("destLat").value);
+            const destLon = parseFloat(document.getElementById("destLon").value);
+    
+            if (isNaN(currentLat) || isNaN(currentLon) || isNaN(destLat) || isNaN(destLon)) {
+                alert("Por favor, ingresa coordenadas válidas.");
+                return;
+            }
+
+            if (!map) {
+                // Inicializar el mapa si no ha sido inicializado
+                map = L.map('map').setView([currentLat, currentLon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
             } else {
-                document.getElementById("resultado").innerHTML = "La geolocalización no es compatible con este navegador.";
+                // Actualizar la vista del mapa
+                map.setView([currentLat, currentLon], 15);
             }
-        }
-    
-        function enviarUbicacion(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-    
-            // Mostrar la ubicación en un mapa de Leaflet
-            const map = L.map('map').setView([lat, lon], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+            // Agregar marcador en la ubicación actual con popup
+            const currentMarker = L.marker([currentLat, currentLon]).addTo(map);
+            currentMarker.bindPopup(`Ubicación Actual:<br>Lat: ${currentLat}<br>Lon: ${currentLon}`).openPopup();
+
+            // Agregar marcador en el destino con popup
+            const destMarker = L.marker([destLat, destLon]).addTo(map);
+            destMarker.bindPopup(`Destino: Juan carlos`).openPopup();
+
+            // Si existe una ruta previa, eliminarla
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            // Crear una nueva ruta desde la ubicación actual hasta el destino
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(currentLat, currentLon),
+                    L.latLng(destLat, destLon)
+                ],
+                routeWhileDragging: true
             }).addTo(map);
-            L.marker([lat, lon]).addTo(map);
-    
-            // Enviar la ubicación al servidor
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "guardar_ubicacion.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.send(`lat=${lat}&lon=${lon}`);
-        }
-    
-        function mostrarError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    document.getElementById("resultado").innerHTML = "Usuario denegó la solicitud de geolocalización.";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    document.getElementById("resultado").innerHTML = "La información de ubicación no está disponible.";
-                    break;
-                case error.TIMEOUT:
-                    document.getElementById("resultado").innerHTML = "La solicitud de ubicación ha expirado.";
-                    break;
-                case error.UNKNOWN_ERROR:
-                    document.getElementById("resultado").innerHTML = "Un error desconocido ocurrió.";
-                    break;
-            }
         }
     </script>
 </body>
