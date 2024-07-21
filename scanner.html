@@ -4,10 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escáner de Códigos de Barra</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #scanner-container {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            position: relative;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        #scanner-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: red;
+            z-index: 1;
+        }
+        #result {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>Escáner de Códigos de Barra</h1>
-    <div id="scanner-container"></div>
+    <div id="scanner-container">
+        <div id="canvas-container"></div>
+    </div>
     <p>Resultado: <span id="result"></span></p>
 
     <!-- Incluir la librería QuaggaJS -->
@@ -22,7 +67,7 @@
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
-                target: document.querySelector('#scanner-container'), // Pasar el contenedor del escáner
+                target: document.querySelector('#canvas-container'), // Pasar el contenedor del escáner
                 constraints: {
                     facingMode: "environment" // Utilizar la cámara trasera
                 }
