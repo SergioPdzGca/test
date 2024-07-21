@@ -1,14 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode Scanner</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Códigos de Barras</title>
+    <style>
+        #barcode-scanner {
+            width: 100%;
+            height: 400px;
+            border: 2px solid black;
+        }
+    </style>
 </head>
 <body>
-<h1>Barcode Scanner</h1>
-<div id="interactive" class="viewport"></div>
-<script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
-<script src="app.js"></script>
+    <h1>Detector de Códigos de Barras</h1>
+    <div id="barcode-scanner"></div>
+    <h1>Código de Barras Detectado: <span id="barcode-result">N/A</span></h1>
+
+    <!-- QuaggaJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let scannerArea = document.getElementById('barcode-scanner');
+            let resultSpan = document.getElementById('barcode-result');
+
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: scannerArea,
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "codabar_reader", "upc_reader", "upc_e_reader", "i2of5_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    console.error("Error de inicialización de QuaggaJS:", err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function(data) {
+                let code = data.codeResult.code;
+                resultSpan.textContent = code;
+                console.log("Código detectado:", code);
+            });
+
+            Quagga.onProcessed(function(result) {
+                if (result) {
+                    let drawingCtx = Quagga.canvas.dom.image.getContext('2d');
+                    Quagga.ImageDebug.drawDetection(result, drawingCtx);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
