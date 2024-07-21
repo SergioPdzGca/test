@@ -22,6 +22,7 @@
             max-width: 600px;
             height: 400px;
             position: relative;
+            margin-bottom: 20px;
         }
         #canvas-container {
             width: 100%;
@@ -44,7 +45,13 @@
         }
         #result {
             font-size: 1.5em;
-            margin-top: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 400px;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -53,13 +60,13 @@
     <div id="scanner-container">
         <div id="canvas-container"></div>
     </div>
-    <p>Resultado: <span id="result"></span></p>
+    <br><br><br><br><div id="result">Resultado: <span id="code"></span></div>
 
     <!-- Incluir la librería QuaggaJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script >
         document.addEventListener('DOMContentLoaded', function() {
-    const resultSpan = document.getElementById('result');
+    const resultSpan = document.getElementById('code');
 
     if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
         // Configuración de QuaggaJS
@@ -89,6 +96,18 @@
             console.log(data);
             resultSpan.innerText = data.codeResult.code;
         });
+
+        // Activar la linterna
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+            .then(function(stream) {
+                const track = stream.getVideoTracks()[0];
+                track.applyConstraints({ advanced: [{ torch: true }] })
+                    .catch(function(error) {
+                        console.log('Error al activar la linterna:', error);
+                    });
+            }).catch(function(error) {
+                console.log('Error al acceder a la cámara:', error);
+            });
     } else {
         alert('La API getUserMedia no es compatible con este navegador.');
     }
